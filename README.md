@@ -20,7 +20,7 @@
 ## 📁 Project Structure
 
 ```
-portfolio-website/
+problemstatement-website/
 ├── index.html          # Main HTML structure
 ├── styles.css          # CSS styles and animations
 ├── script.js           # JavaScript functionality
