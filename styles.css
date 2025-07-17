@@ -1,3 +1,28 @@
+/* Sound Button Positioning */
+#audio-toggle {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 1100;
+    width: 56px;
+    height: 56px;
+    background: rgba(10, 10, 10, 0.85);
+    border: 2px solid #b388ff;
+    border-radius: 50%;
+    color: #b388ff;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(179, 136, 255, 0.15);
+    transition: border-color 0.3s, background 0.3s, color 0.3s;
+}
+#audio-toggle:hover {
+    border-color: #7c4dff;
+    background: rgba(179, 136, 255, 0.12);
+    color: #7c4dff;
+}
 /* Reset and Base Styles */
 * {
     margin: 0;
@@ -1276,5 +1301,15 @@ body {
     width: 100vw;
     height: 100vh;
     z-index: 1;
+    pointer-events: none;
+}
+
+#solar-system-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
     pointer-events: none;
 }
