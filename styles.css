@@ -1,28 +1,3 @@
-/* Sound Button Positioning */
-#audio-toggle {
-    position: fixed;
-    bottom: 32px;
-    right: 32px;
-    z-index: 1100;
-    width: 56px;
-    height: 56px;
-    background: rgba(10, 10, 10, 0.85);
-    border: 2px solid #b388ff;
-    border-radius: 50%;
-    color: #b388ff;
-    font-size: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 24px rgba(179, 136, 255, 0.15);
-    transition: border-color 0.3s, background 0.3s, color 0.3s;
-}
-#audio-toggle:hover {
-    border-color: #7c4dff;
-    background: rgba(179, 136, 255, 0.12);
-    color: #7c4dff;
-}
 /* Reset and Base Styles */
 * {
     margin: 0;
@@ -859,51 +834,87 @@ body {
 
 /* Challenge Details Section */
 .challenge-details {
-    padding: 8rem 4rem;
     background: #000;
-    /* changed to pure black */
     position: relative;
+    padding: 8rem 4rem;
 }
 
 .challenge-details::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background:
-        linear-gradient(90deg, transparent 95%, rgba(179, 136, 255, 0.08) 100%),
-        /* changed to purple */
-        linear-gradient(0deg, transparent 95%, rgba(179, 136, 255, 0.08) 100%);
-    /* changed to purple */
-    background-size: 80px 80px;
-    pointer-events: none;
-    z-index: 0;
+    display: none !important;
 }
 
 .details-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+    gap: 2.5rem;
+    /* More space between cards */
     margin-top: 4rem;
     position: relative;
     z-index: 1;
 }
 
 .detail-card {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 2rem;
-    border-radius: 15px;
-    border: 1px solid rgba(179, 136, 255, 0.2);
-    /* changed to purple */
-    transition: transform 0.3s ease, border-color 0.3s ease;
+    background: rgba(20, 20, 40, 0.96);
+    border-radius: 18px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25), 0 0 0 2px #b388ff33;
+    border: 1.5px solid #23234f;
+    padding: 2.2rem 2rem;
+    color: #fff;
+    font-size: 1.08rem;
+    line-height: 1.7;
+    font-weight: 400;
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+    position: relative;
+    z-index: 1;
+}
+
+.detail-card h3 {
+    color: #b388ff;
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 0.7em;
+    letter-spacing: 0.04em;
+    text-shadow: 0 2px 8px #000a;
+}
+
+.detail-card p,
+.detail-card li {
+    color: #e0e0e0;
+    font-size: 1.08rem;
+    font-weight: 400;
+    text-shadow: 0 1px 2px #0008;
+}
+
+.detail-card ul {
+    margin: 0.5em 0 0 0;
+    padding-left: 1.2em;
 }
 
 .detail-card:hover {
-    transform: translateY(-5px);
+    transform: rotateY(12deg) rotateX(6deg) scale(1.04);
+    box-shadow: 0 16px 48px 0 #b388ff55, 0 0 32px 0 #fff2;
     border-color: #b388ff;
-    /* changed to purple */
+    z-index: 2;
+}
+
+/* Optional: Add a subtle light reflection */
+.detail-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.13) 0%, transparent 100%);
+    border-radius: 15px 15px 40% 40%/15px 15px 60% 60%;
+    pointer-events: none;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+    z-index: 3;
+}
+
+.detail-card:hover::before {
+    opacity: 1;
 }
 
 .detail-card h3 {
@@ -1304,12 +1315,191 @@ body {
     pointer-events: none;
 }
 
-#solar-system-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 0;
-    pointer-events: none;
+/* Feature Showcase Section Styles */
+.feature-showcase {
+    background: #000;
+    /* Pure black background */
+    padding: 6rem 0 7rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-header {
+    text-align: center;
+    margin-bottom: 3.5rem;
+}
+
+.feature-title {
+    font-size: 2.3rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.5rem;
+}
+
+.feature-subtitle {
+    color: #b0b0b0;
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+
+.feature-cards {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 2.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.feature-card {
+    background: linear-gradient(135deg, #181828 60%, #23234f 100%);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25), 0 0 0 2px #23234f;
+    border: 1.5px solid #23234f;
+    padding: 2.2rem 2rem 2rem 2rem;
+    color: #fff;
+    min-width: 260px;
+    max-width: 320px;
+    text-align: center;
+    position: relative;
+    transition:
+        transform 0.35s cubic-bezier(.25, .8, .25, 1),
+        box-shadow 0.35s cubic-bezier(.25, .8, .25, 1),
+        opacity 0.6s cubic-bezier(.4, 0, .2, 1);
+    opacity: 0;
+    transform: translateY(40px) scale(0.98);
+    animation: cardFadeIn 0.8s forwards;
+}
+
+.feature-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.feature-card:nth-child(2) {
+    animation-delay: 0.3s;
+}
+
+.feature-card:nth-child(3) {
+    animation-delay: 0.5s;
+}
+
+@keyframes cardFadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.feature-card:hover,
+.feature-card:focus {
+    transform: translateY(-10px) scale(1.04) rotateZ(-1deg);
+    box-shadow: 0 16px 48px 0 #b388ff55, 0 0 32px 0 #fff2;
+    z-index: 2;
+}
+
+.feature-card-center {
+    transform: scale(1.12) translateY(-18px);
+    z-index: 2;
+    box-shadow: 0 16px 48px 0 #b388ff33, 0 0 0 2.5px #ffb300;
+    border-color: #ffb300;
+    animation-delay: 0.3s !important;
+}
+
+.feature-tag {
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.2em 0.8em;
+    border-radius: 12px;
+    margin-bottom: 1.1em;
+    margin-top: -0.5em;
+    color: #fff;
+    background: #23234f;
+}
+
+.feature-tag.pro {
+    background: #ffb300;
+    color: #181828;
+}
+
+.feature-tag.staking {
+    background: #b388ff;
+    color: #fff;
+}
+
+.feature-tag.bot {
+    background: #00fff7;
+    color: #181828;
+}
+
+.feature-icon {
+    font-size: 2.2rem;
+    margin-bottom: 1em;
+    color: #ffb300;
+}
+
+.feature-svg-icon {
+    width: 36px;
+    height: 36px;
+    display: inline-block;
+    margin-bottom: 1em;
+}
+
+.feature-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.7em;
+    color: #fff;
+}
+
+.feature-card-desc {
+    color: #e0e0e0;
+    font-size: 1.05rem;
+    margin-bottom: 1.2em;
+}
+
+.feature-btn {
+    background: #ffb300;
+    color: #181828;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7em 1.6em;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.feature-btn:hover {
+    background: #b388ff;
+    color: #fff;
+}
+
+.feature-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: filter 0.2s;
+}
+
+.feature-card-link:focus,
+.feature-card-link:hover {
+    filter: brightness(1.05);
+}
+
+@media (max-width: 900px) {
+    .feature-cards {
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .feature-card-center {
+        transform: scale(1.06) translateY(0);
+    }
 }

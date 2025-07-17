@@ -182,8 +182,6 @@ function initAudioSystem() {
 
     // Initialize Web Audio API only after user interaction
     let audioInitialized = false;
-    let audioBuffer = null;
-    let audioSource = null;
 
     function initializeAudio() {
         if (audioInitialized) return;
@@ -203,95 +201,19 @@ function initAudioSystem() {
             ambientGain.connect(audioContext.destination);
             uiGain.connect(audioContext.destination);
 
-            // Load and decode song.mp3
-            fetch('song.mp3')
-                .then(response => {
-                    if (!response.ok) throw new Error('song.mp3 not found');
-                    return response.arrayBuffer();
-                })
-                .then(data => audioContext.decodeAudioData(data))
-                .then(buffer => {
-                    audioBuffer = buffer;
-                    console.log('song.mp3 loaded');
-                    // Play the song after loading if audio is enabled
-                    if (isAudioEnabled) {
-                        toggleSongPlayback(true);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading audio file:', error);
-                });
-
             audioInitialized = true;
             console.log('Audio system initialized successfully');
+
         } catch (error) {
             console.log('Web Audio API not supported, using fallback');
         }
     }
 
-    // Automatically initialize audio on page load
-    initializeAudio();
-
-
-    // Listen for first user interaction to resume audio context and play song
-    function handleFirstInteraction() {
-        if (audioContext && audioContext.state === 'suspended') {
-            audioContext.resume().then(() => {
-                if (isAudioEnabled && audioBuffer) {
-                    toggleSongPlayback(true);
-                }
-            });
-        } else if (isAudioEnabled && audioBuffer) {
-            toggleSongPlayback(true);
-        }
-        window.removeEventListener('click', handleFirstInteraction);
-        window.removeEventListener('keydown', handleFirstInteraction);
-        window.removeEventListener('touchstart', handleFirstInteraction);
-    }
-    window.addEventListener('click', handleFirstInteraction);
-    window.addEventListener('keydown', handleFirstInteraction);
-    window.addEventListener('touchstart', handleFirstInteraction);
-    // Play or stop the song
-    function toggleSongPlayback(play) {
-        if (!audioBuffer || !audioContext) return;
-
-        // Stop previous source if exists
-        if (audioSource) {
-            try {
-                audioSource.stop();
-            } catch (e) {}
-            audioSource.disconnect();
-            audioSource = null;
-        }
-
-        if (play) {
-            audioSource = audioContext.createBufferSource();
-            audioSource.buffer = audioBuffer;
-            audioSource.loop = true;
-            audioSource.connect(ambientGain);
-            try {
-                audioSource.start(0);
-            } catch (e) {
-                console.error('Error starting audio source:', e);
-            }
-        }
-    }
-
     // Audio toggle functionality
-    audioToggle.addEventListener('click', async () => {
-        // Resume AudioContext if suspended
-        if (audioContext && audioContext.state === 'suspended') {
-            try {
-                await audioContext.resume();
-            } catch (e) {
-                console.error('Error resuming AudioContext:', e);
-            }
-        }
-
+    audioToggle.addEventListener('click', () => {
+        // Initialize audio on first click
         if (!audioInitialized) {
             initializeAudio();
-            // Wait for audio to load before toggling
-            return;
         }
 
         isAudioEnabled = !isAudioEnabled;
@@ -300,32 +222,177 @@ function initAudioSystem() {
             audioToggle.textContent = '🔊';
             audioToggle.style.borderColor = '#64ffda';
             if (audioContext && audioContext.state === 'suspended') {
-                try {
-                    await audioContext.resume();
-                } catch (e) {
-                    console.error('Error resuming AudioContext:', e);
-                }
+                audioContext.resume();
             }
-            ambientGain.gain.value = 0.2;
-            // Play song if loaded, otherwise will auto-play after load
-            if (audioBuffer) {
-                toggleSongPlayback(true);
+            if (ambientGain) {
+                ambientGain.gain.value = 0.2;
+                // Start ambient music only after user interaction
+                generateAmbientMusic();
             }
         } else {
             audioToggle.textContent = '🔇';
             audioToggle.style.borderColor = '#666';
-            ambientGain.gain.value = 0;
-            toggleSongPlayback(false);  // Stop song
+            if (ambientGain) {
+                ambientGain.gain.value = 0;
+            }
+            // Clear ambient music when disabled
+            clearAmbientMusic();
         }
 
-        // Play UI sound if needed
-        playUISound?.('click');
+        // Play UI sound
+        playUISound('click');
     });
 
     // Add hover sounds to interactive elements
-    addHoverSounds?.();
+    addHoverSounds();
 }
 
+// Generate ambient music using Web Audio API
+let ambientOscillators = [];
+let ambientInterval = null;
+
+function generateAmbientMusic() {
+    if (!audioContext || !isAudioEnabled) return;
+
+    // Clear any existing ambient music
+    clearAmbientMusic();
+
+    // Create oscillator for ambient drone
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    // Set up oscillator
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(220, audioContext.currentTime); // A3
+
+    // Create a slow frequency modulation
+    oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(440, audioContext.currentTime + 10);
+    oscillator.frequency.exponentialRampToValueAtTime(220, audioContext.currentTime + 20);
+
+    // Set up gain for volume control
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+
+    // Connect nodes
+    oscillator.connect(gainNode);
+    gainNode.connect(ambientGain);
+
+    // Start the oscillator
+    oscillator.start();
+    ambientOscillators.push(oscillator);
+
+    // Create a second oscillator for harmony
+    const oscillator2 = audioContext.createOscillator();
+    const gainNode2 = audioContext.createGain();
+
+    oscillator2.type = 'triangle';
+    oscillator2.frequency.setValueAtTime(330, audioContext.currentTime); // E4
+
+    // Different modulation pattern
+    oscillator2.frequency.setValueAtTime(330, audioContext.currentTime);
+    oscillator2.frequency.exponentialRampToValueAtTime(660, audioContext.currentTime + 15);
+    oscillator2.frequency.exponentialRampToValueAtTime(330, audioContext.currentTime + 30);
+
+    gainNode2.gain.setValueAtTime(0.05, audioContext.currentTime);
+
+    oscillator2.connect(gainNode2);
+    gainNode2.connect(ambientGain);
+
+    oscillator2.start();
+    ambientOscillators.push(oscillator2);
+
+    // Loop the ambient music with proper cleanup
+    ambientInterval = setInterval(() => {
+        if (isAudioEnabled && audioContext) {
+            generateAmbientMusic();
+        }
+    }, 30000); // Restart every 30 seconds
+}
+
+// Clear ambient music
+function clearAmbientMusic() {
+    // Stop all oscillators
+    ambientOscillators.forEach(osc => {
+        try {
+            osc.stop();
+        } catch (e) {
+            // Oscillator might already be stopped
+        }
+    });
+    ambientOscillators = [];
+
+    // Clear interval
+    if (ambientInterval) {
+        clearInterval(ambientInterval);
+        ambientInterval = null;
+    }
+}
+
+// Play UI sounds
+let lastUISoundTime = 0;
+const UI_SOUND_COOLDOWN = 100; // Minimum time between UI sounds in ms
+
+function playUISound(type) {
+    if (!isAudioEnabled || !audioContext) return;
+
+    // Prevent too many sounds at once
+    const now = Date.now();
+    if (now - lastUISoundTime < UI_SOUND_COOLDOWN) return;
+    lastUISoundTime = now;
+
+    try {
+        if (type === 'click') {
+            // Generate click sound
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(uiGain);
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.1);
+
+        } else if (type === 'hover') {
+            // Generate hover sound - only play occasionally to reduce spam
+            if (Math.random() > 0.3) return; // 30% chance to play hover sound
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.05);
+
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(uiGain);
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.05);
+        }
+    } catch (error) {
+        console.log('UI sound generation failed:', error);
+    }
+}
+
+// Add hover sounds to interactive elements
+function addHoverSounds() {
+    const interactiveElements = document.querySelectorAll('button, a, .nav-link, .work-item, .contact-link, .cta-button');
+
+    interactiveElements.forEach(element => {
+        element.addEventListener('mouseenter', () => playUISound('hover'));
+        element.addEventListener('click', () => playUISound('click'));
+    });
+}
 
 // Performance monitoring
 let fps = 60;
@@ -429,7 +496,6 @@ function initLoading() {
 
 // Initialize the application
 function initApp() {
-    initSolarSystemBackground();
     initCustomCursor();
     initNavigation();
     initHeroAnimation();
@@ -2617,192 +2683,6 @@ function init3DTunnelEffect() {
     }, { threshold: 0.3 });
 
     observer.observe(problemSection);
-}
-
-// --- SOLAR SYSTEM BACKGROUND ---
-function initSolarSystemBackground() {
-    const canvas = document.getElementById('solar-system-bg');
-    if (!canvas || typeof THREE === 'undefined') return;
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 60);
-    camera.lookAt(0, 0, 0);
-
-    // Add stars
-    const starCount = 180;
-    const starGeometry = new THREE.BufferGeometry();
-    const starPositions = new Float32Array(starCount * 3);
-    for (let i = 0; i < starCount; i++) {
-        starPositions[i * 3] = (Math.random() - 0.5) * 120;
-        starPositions[i * 3 + 1] = (Math.random() - 0.5) * 80;
-        starPositions[i * 3 + 2] = (Math.random() - 0.5) * 120;
-    }
-    starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.18, opacity: 0.7, transparent: true });
-    const stars = new THREE.Points(starGeometry, starMaterial);
-    scene.add(stars);
-
-    // Glowing sun at the center
-    const sunGeo = new THREE.SphereGeometry(5, 48, 48);
-    const sunMat = new THREE.MeshBasicMaterial({ color: 0xfff200 });
-    const sun = new THREE.Mesh(sunGeo, sunMat);
-    sun.position.set(0, 0, 0);
-    scene.add(sun);
-    // Sun glow
-    const sunGlowGeo = new THREE.SphereGeometry(7.5, 48, 48);
-    const sunGlowMat = new THREE.MeshBasicMaterial({ color: 0xfff200, transparent: true, opacity: 0.18, side: THREE.BackSide });
-    const sunGlow = new THREE.Mesh(sunGlowGeo, sunGlowMat);
-    sunGlow.position.set(0, 0, 0);
-    scene.add(sunGlow);
-
-    // Planets: color, size, orbit radius, speed, [hasRing, hasMoon]
-    const planets = [
-        { color: 0x4a90e2, size: 1.2, radius: 11, speed: 0.018, angle: Math.random() * Math.PI * 2 }, // Blue
-        { color: 0x64ffda, size: 1.6, radius: 16, speed: 0.012, angle: Math.random() * Math.PI * 2, hasRing: true }, // Cyan with ring
-        { color: 0xff6b6b, size: 1.1, radius: 21, speed: 0.009, angle: Math.random() * Math.PI * 2 }, // Red
-        { color: 0xb388ff, size: 2.1, radius: 27, speed: 0.007, angle: Math.random() * Math.PI * 2, hasMoon: true }, // Purple with moon
-        { color: 0xffffff, size: 0.7, radius: 33, speed: 0.005, angle: Math.random() * Math.PI * 2 } // White
-    ];
-    const planetMeshes = [];
-    const ringMeshes = [];
-    const moonMeshes = [];
-    planets.forEach((p, i) => {
-        const geo = new THREE.SphereGeometry(p.size, 32, 32);
-        const mat = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.7, metalness: 0.3 });
-        const mesh = new THREE.Mesh(geo, mat);
-        scene.add(mesh);
-        planetMeshes.push(mesh);
-        // Add ring if needed
-        if (p.hasRing) {
-            const ringGeo = new THREE.RingGeometry(p.size * 1.3, p.size * 2, 64);
-            const ringMat = new THREE.MeshBasicMaterial({ color: 0x64ffda, side: THREE.DoubleSide, transparent: true, opacity: 0.3 });
-            const ring = new THREE.Mesh(ringGeo, ringMat);
-            ring.rotation.x = Math.PI / 2.2;
-            mesh.add(ring);
-            ringMeshes.push(ring);
-        } else {
-            ringMeshes.push(null);
-        }
-        // Add moon if needed
-        if (p.hasMoon) {
-            const moonGeo = new THREE.SphereGeometry(p.size * 0.35, 16, 16);
-            const moonMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.8 });
-            const moon = new THREE.Mesh(moonGeo, moonMat);
-            mesh.add(moon); // Attach to planet for easy orbit
-            moonMeshes.push(moon);
-        } else {
-            moonMeshes.push(null);
-        }
-    });
-
-    // Lighting
-    const ambient = new THREE.AmbientLight(0xffffff, 0.45);
-    scene.add(ambient);
-    const sunLight = new THREE.PointLight(0xfff200, 1.2, 100);
-    sunLight.position.set(0, 0, 0);
-    scene.add(sunLight);
-
-    // Animation loop
-    function animate() {
-        requestAnimationFrame(animate);
-        // Animate planets
-        planets.forEach((p, i) => {
-            p.angle += p.speed;
-            const x = Math.cos(p.angle) * p.radius;
-            const y = Math.sin(p.angle) * p.radius;
-            planetMeshes[i].position.set(x, y, 0);
-            // Animate moon if present
-            if (p.hasMoon && moonMeshes[i]) {
-                const moonAngle = Date.now() * 0.0008 % (Math.PI * 2);
-                const moonRadius = planets[i].size * 2.2;
-                moonMeshes[i].position.set(Math.cos(moonAngle) * moonRadius, Math.sin(moonAngle) * moonRadius, 0);
-            }
-        });
-        // Sun glow pulse
-        sunGlow.material.opacity = 0.13 + Math.abs(Math.sin(Date.now() * 0.001)) * 0.09;
-        // Subtle rotation for the whole system
-        scene.rotation.z += 0.0003;
-        renderer.render(scene, camera);
-    }
-    animate();
-
-    // Handle resize
-    window.addEventListener('resize', () => {
-        width = window.innerWidth;
-        height = window.innerHeight;
-        renderer.setSize(width, height);
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
-    });
-
-    // --- Astronauts ---
-    const astronautCount = 3;
-    const astronautSprites = [];
-    const astronautData = [];
-    for (let i = 0; i < astronautCount; i++) {
-        // Create a canvas texture for a simple astronaut (white circle placeholder)
-        const size = 128;
-        const astronautCanvas = document.createElement('canvas');
-        astronautCanvas.width = size;
-        astronautCanvas.height = size;
-        const ctx = astronautCanvas.getContext('2d');
-        // Draw helmet
-        ctx.beginPath();
-        ctx.arc(size/2, size/2, size/2-8, 0, 2*Math.PI);
-        ctx.fillStyle = '#fff';
-        ctx.shadowColor = '#b388ff';
-        ctx.shadowBlur = 12;
-        ctx.fill();
-        // Draw visor
-        ctx.beginPath();
-        ctx.ellipse(size/2, size/2, size/2-24, size/2-32, 0, 0, 2*Math.PI);
-        ctx.fillStyle = '#b0e0ff';
-        ctx.globalAlpha = 0.7;
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        // Draw body (rectangle)
-        ctx.fillStyle = '#eee';
-        ctx.fillRect(size/2-12, size/2+20, 24, 32);
-        // Draw arms
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 8;
-        ctx.beginPath();
-        ctx.moveTo(size/2-12, size/2+28);
-        ctx.lineTo(size/2-32, size/2+48);
-        ctx.moveTo(size/2+12, size/2+28);
-        ctx.lineTo(size/2+32, size/2+48);
-        ctx.stroke();
-        // Draw legs
-        ctx.beginPath();
-        ctx.moveTo(size/2-8, size/2+52);
-        ctx.lineTo(size/2-8, size/2+80);
-        ctx.moveTo(size/2+8, size/2+52);
-        ctx.lineTo(size/2+8, size/2+80);
-        ctx.stroke();
-
-        const texture = new THREE.CanvasTexture(astronautCanvas);
-        const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
-        const sprite = new THREE.Sprite(material);
-        sprite.scale.set(5, 5, 1); // Size in world units
-        scene.add(sprite);
-        astronautSprites.push(sprite);
-        // Randomize initial position, speed, and rotation
-        astronautData.push({
-            x: (Math.random() - 0.5) * 60,
-            y: (Math.random() - 0.5) * 40,
-            z: Math.random() * 10 - 5,
-            speedX: (Math.random() - 0.5) * 0.03,
-            speedY: (Math.random() - 0.5) * 0.02,
-            rot: Math.random() * Math.PI * 2,
-            rotSpeed: (Math.random() - 0.5) * 0.01
-        });
-    }
 }
 
 // Initialize everything when DOM is loaded
