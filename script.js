@@ -173,226 +173,14 @@ function initPlanetAnimation() {
     });
 }
 
-// --- AUDIO SYSTEM ---
-function initAudioSystem() {
-    // Get audio toggle button
-    audioToggle = document.getElementById('audio-toggle');
 
-    if (!audioToggle) return;
-
-    // Initialize Web Audio API only after user interaction
-    let audioInitialized = false;
-
-    function initializeAudio() {
-        if (audioInitialized) return;
-
-        try {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-            // Create gain nodes for volume control
-            ambientGain = audioContext.createGain();
-            uiGain = audioContext.createGain();
-
-            // Set initial volumes
-            ambientGain.gain.value = 0.2;
-            uiGain.gain.value = 0.3;
-
-            // Connect gain nodes to destination
-            ambientGain.connect(audioContext.destination);
-            uiGain.connect(audioContext.destination);
-
-            audioInitialized = true;
-            console.log('Audio system initialized successfully');
-
-        } catch (error) {
-            console.log('Web Audio API not supported, using fallback');
-        }
-    }
-
-    // Audio toggle functionality
-    audioToggle.addEventListener('click', () => {
-        // Initialize audio on first click
-        if (!audioInitialized) {
-            initializeAudio();
-        }
-
-        isAudioEnabled = !isAudioEnabled;
-
-        if (isAudioEnabled) {
-            audioToggle.textContent = '🔊';
-            audioToggle.style.borderColor = '#64ffda';
-            if (audioContext && audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-            if (ambientGain) {
-                ambientGain.gain.value = 0.2;
-                // Start ambient music only after user interaction
-                generateAmbientMusic();
-            }
-        } else {
-            audioToggle.textContent = '🔇';
-            audioToggle.style.borderColor = '#666';
-            if (ambientGain) {
-                ambientGain.gain.value = 0;
-            }
-            // Clear ambient music when disabled
-            clearAmbientMusic();
-        }
-
-        // Play UI sound
-        playUISound('click');
-    });
-
-    // Add hover sounds to interactive elements
-    addHoverSounds();
-}
-
-// Generate ambient music using Web Audio API
-let ambientOscillators = [];
-let ambientInterval = null;
-
-function generateAmbientMusic() {
-    if (!audioContext || !isAudioEnabled) return;
-
-    // Clear any existing ambient music
-    clearAmbientMusic();
-
-    // Create oscillator for ambient drone
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    // Set up oscillator
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(220, audioContext.currentTime); // A3
-
-    // Create a slow frequency modulation
-    oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(440, audioContext.currentTime + 10);
-    oscillator.frequency.exponentialRampToValueAtTime(220, audioContext.currentTime + 20);
-
-    // Set up gain for volume control
-    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-
-    // Connect nodes
-    oscillator.connect(gainNode);
-    gainNode.connect(ambientGain);
-
-    // Start the oscillator
-    oscillator.start();
-    ambientOscillators.push(oscillator);
-
-    // Create a second oscillator for harmony
-    const oscillator2 = audioContext.createOscillator();
-    const gainNode2 = audioContext.createGain();
-
-    oscillator2.type = 'triangle';
-    oscillator2.frequency.setValueAtTime(330, audioContext.currentTime); // E4
-
-    // Different modulation pattern
-    oscillator2.frequency.setValueAtTime(330, audioContext.currentTime);
-    oscillator2.frequency.exponentialRampToValueAtTime(660, audioContext.currentTime + 15);
-    oscillator2.frequency.exponentialRampToValueAtTime(330, audioContext.currentTime + 30);
-
-    gainNode2.gain.setValueAtTime(0.05, audioContext.currentTime);
-
-    oscillator2.connect(gainNode2);
-    gainNode2.connect(ambientGain);
-
-    oscillator2.start();
-    ambientOscillators.push(oscillator2);
-
-    // Loop the ambient music with proper cleanup
-    ambientInterval = setInterval(() => {
-        if (isAudioEnabled && audioContext) {
-            generateAmbientMusic();
-        }
-    }, 30000); // Restart every 30 seconds
-}
-
-// Clear ambient music
-function clearAmbientMusic() {
-    // Stop all oscillators
-    ambientOscillators.forEach(osc => {
-        try {
-            osc.stop();
-        } catch (e) {
-            // Oscillator might already be stopped
-        }
-    });
-    ambientOscillators = [];
-
-    // Clear interval
-    if (ambientInterval) {
-        clearInterval(ambientInterval);
-        ambientInterval = null;
-    }
-}
-
-// Play UI sounds
-let lastUISoundTime = 0;
-const UI_SOUND_COOLDOWN = 100; // Minimum time between UI sounds in ms
-
-function playUISound(type) {
-    if (!isAudioEnabled || !audioContext) return;
-
-    // Prevent too many sounds at once
-    const now = Date.now();
-    if (now - lastUISoundTime < UI_SOUND_COOLDOWN) return;
-    lastUISoundTime = now;
-
-    try {
-        if (type === 'click') {
-            // Generate click sound
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
-
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-
-            oscillator.connect(gainNode);
-            gainNode.connect(uiGain);
-
-            oscillator.start();
-            oscillator.stop(audioContext.currentTime + 0.1);
-
-        } else if (type === 'hover') {
-            // Generate hover sound - only play occasionally to reduce spam
-            if (Math.random() > 0.3) return; // 30% chance to play hover sound
-
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.05);
-
-            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
-
-            oscillator.connect(gainNode);
-            gainNode.connect(uiGain);
-
-            oscillator.start();
-            oscillator.stop(audioContext.currentTime + 0.05);
-        }
-    } catch (error) {
-        console.log('UI sound generation failed:', error);
-    }
-}
 
 // Add hover sounds to interactive elements
-function addHoverSounds() {
-    const interactiveElements = document.querySelectorAll('button, a, .nav-link, .work-item, .contact-link, .cta-button');
 
-    interactiveElements.forEach(element => {
-        element.addEventListener('mouseenter', () => playUISound('hover'));
-        element.addEventListener('click', () => playUISound('click'));
-    });
-}
+
+
+
+
 
 // Performance monitoring
 let fps = 60;
@@ -2077,29 +1865,8 @@ function initWorkTeamSolarSystem(withSunMesh, sunStartPos) {
         planetMeshes.push(mesh);
         orbitAngles.push(Math.random() * Math.PI * 2);
     });
-    // Add orbit lines
-    planets.forEach((p, i) => {
-        if (p.radius === 0) return;
-        const segments = 128;
-        const orbitGeo = new THREE.BufferGeometry();
-        const orbitVerts = [];
-        for (let j = 0; j <= segments; j++) {
-            const theta = (j / segments) * Math.PI * 2;
-            orbitVerts.push(Math.cos(theta) * p.radius, Math.sin(theta) * p.radius, 0);
-        }
-        orbitGeo.setAttribute('position', new THREE.Float32BufferAttribute(orbitVerts, 3));
-        const orbitMat = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.13, transparent: true });
-        const orbitLine = new THREE.Line(orbitGeo, orbitMat);
-        scene.add(orbitLine);
-    });
 
-    // If a sun mesh is provided, add it to the scene at the given position
-    let mergingSun = null;
-    if (withSunMesh && sunStartPos) {
-        mergingSun = withSunMesh;
-        mergingSun.position.copy(sunStartPos);
-        scene.add(mergingSun);
-    }
+
 
     // Animation loop
     function animate() {
@@ -2230,41 +1997,7 @@ function init3DTunnelEffect() {
     revealCanvas.width = width;
     revealCanvas.height = height;
 
-    // Theme cards data with detailed problems
-    const themes = [
-        {
-            title: 'Smart Energy Management',
-            color: '#b388ff',
-            icon: '⚡',
-            description: 'IoT • Machine Learning • Sustainability',
-            problem: 'Design an intelligent energy management system that optimizes power consumption in urban buildings using real-time data from IoT sensors. The system should predict energy demand, automatically adjust settings, and provide actionable insights to reduce carbon footprint by at least 30%.',
-            challenges: ['Real-time data processing', 'Predictive analytics', 'IoT integration', 'User interface design']
-        },
-        {
-            title: 'Urban Mobility Platform',
-            color: '#64ffda',
-            icon: '🚗',
-            description: 'Real-time Data • Optimization • User Experience',
-            problem: 'Create a comprehensive urban mobility platform that integrates public transport, ride-sharing, and micro-mobility options. The platform should provide real-time route optimization, reduce travel time by 25%, and encourage sustainable transportation choices through gamification.',
-            challenges: ['Multi-modal routing', 'Real-time optimization', 'Gamification system', 'Mobile app development']
-        },
-        {
-            title: 'Waste Management System',
-            color: '#ff6b6b',
-            icon: '♻️',
-            description: 'Computer Vision • Automation • Analytics',
-            problem: 'Develop an AI-powered waste management system that uses computer vision to automatically sort recyclables, track waste generation patterns, and optimize collection routes. The system should increase recycling rates by 40% and reduce operational costs.',
-            challenges: ['Computer vision implementation', 'Route optimization', 'Data analytics', 'Automation systems']
-        },
-        {
-            title: 'Community Engagement App',
-            color: '#4ecdc4',
-            icon: '👥',
-            description: 'Social Platform • Gamification • Local Impact',
-            problem: 'Build a community engagement platform that connects local residents, businesses, and government to collaborate on neighborhood improvement projects. The app should facilitate communication, track project progress, and measure community impact.',
-            challenges: ['Social networking features', 'Project management', 'Impact measurement', 'Community building']
-        }
-    ];
+
 
     // Card positions and states
     const cards = [];
@@ -2737,4 +2470,3 @@ window.addEventListener('beforeunload', () => {
         audioContext.close();
     }
 });
-
