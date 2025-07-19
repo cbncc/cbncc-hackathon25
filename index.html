@@ -46,10 +46,9 @@
                             <span class="glitch-letter">N</span>
                         </span>
                     </h1>
-                    <p class="hero-subtitle">Welcome to the future of innovation</p>
-                    <div class="hero-cta">
-                        <button class="cta-button">Enter Challenge</button>
-                    </div>
+                    <h1 class="nsu-heading typewriter">AT NETAJI SUBHAS UNIVERSITY</h1>
+
+                    
                 </div>
                 <div class="hero-visual">
                     <canvas id="hero-canvas"></canvas>
@@ -78,12 +77,110 @@
                     </div>
                 </div>
             </section>
+<!-- Falling Stars Section -->
+<section id="falling-stars-section" style="position:relative;min-height:100vh;width:100vw;background:#000;overflow:hidden;">
 
-            <!-- Falling Stars Section -->
-            <section id="falling-stars-section" style="position:relative;min-height:100vh;width:100vw;background:#000;overflow:hidden;">
-                <canvas id="falling-stars-bg-canvas" style="position:absolute;top:0;left:0;width:100vw;height:100vh;z-index:0;"></canvas>
-                <canvas id="falling-stars-canvas" style="position:absolute;top:0;left:0;width:100vw;height:100vh;z-index:1;"></canvas>
-            </section>
+  <!-- Canvas Layers (sharp and unblurred) -->
+  <canvas id="falling-stars-bg-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;"></canvas>
+  <canvas id="falling-stars-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;"></canvas>
+
+  <!-- Overlay Content (separate from canvas blur) -->
+  <div class="collab-container">
+      <h1 class="collab-heading">In Collaboration With</h1>
+
+      <div class="collab-boxes">
+          <div class="collab-box">School of IT</div>
+          <div class="collab-box">School of Engineering</div>
+          <div class="collab-box">CBNCC</div>
+          <div class="collab-box">NSU Tech Community</div>
+      </div>
+  </div>
+
+  <!-- Styles -->
+  <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@700&display=swap');
+
+      /* Do NOT apply any blur to this container */
+      .collab-container {
+          position: relative;
+          z-index: 2;
+          height: 100vh;
+          width: 100vw;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          text-align: center;
+          color: white;
+          padding: 2rem;
+          background: transparent; /* no blur */
+          animation: fadeSlideUp 2s ease-out;
+      }
+
+      .collab-heading {
+          font-family: 'Orbitron', sans-serif;
+          font-size: 3rem;
+          font-weight: 700;
+          margin-bottom: 2rem;
+          color: #ffffff;
+          text-shadow: 0 0 20px rgba(255,255,255,0.2);
+      }
+
+      .collab-boxes {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1.5rem;
+          justify-content: center;
+          align-items: center;
+      }
+
+      .collab-box {
+          font-family: 'Inter', sans-serif;
+          font-size: 1.4rem;
+          padding: 1.2rem 2rem;
+          min-width: 220px;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
+          box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(10px); /* blur only inside the box */
+          transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+      }
+
+      .collab-box:hover {
+          transform: scale(1.08);
+          border: 1px solid #a855f7;
+          box-shadow: 0 0 25px rgba(168, 85, 247, 0.7), 0 0 60px rgba(168, 85, 247, 0.2);
+      }
+
+      @keyframes fadeSlideUp {
+          0% {
+              opacity: 0;
+              transform: translateY(40px);
+          }
+          100% {
+              opacity: 1;
+              transform: translateY(0);
+          }
+      }
+
+      @media screen and (max-width: 768px) {
+          .collab-heading {
+              font-size: 2.2rem;
+          }
+
+          .collab-box {
+              font-size: 1.1rem;
+              padding: 1rem 1.5rem;
+              min-width: 160px;
+          }
+      }
+  </style>
+</section>
+
+
+
+
 
             <!-- Problem Statement Section -->
             <section id="problem" class="work-section" data-aos="fade-up">

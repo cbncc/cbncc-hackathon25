@@ -14,7 +14,7 @@ body {
     background: #0a0a0a;
     color: #ffffff;
     overflow-x: hidden;
-    cursor: none;
+    cursor: auto !important;
 }
 
 #app {
@@ -953,35 +953,7 @@ body {
 
 /* Custom Cursor */
 .custom-cursor {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 9999;
-}
-
-.cursor-dot {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background: #b388ff;
-    /* changed from #64ffda to purple */
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: transform 0.1s ease;
-}
-
-.cursor-ring {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    border: 2px solid rgba(179, 136, 255, 0.5);
-    /* changed to purple */
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: all 0.3s ease;
+    display: none !important;
 }
 
 /* Background Canvas */
@@ -2019,4 +1991,38 @@ body {
     font-size: 0.98rem;
     color: #b0b0b0;
     margin-top: 0.5rem;
+}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+
+.nsu-heading {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2.8rem;
+  text-align: center;
+  color: #ffffff;
+  text-transform: uppercase;
+  margin: 40px auto 20px auto;
+  letter-spacing: 8px;
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid #ffffff;
+  width: fit-content;
+  animation: typing 3.5s steps(30, end), blink .75s step-end infinite;
+  transition: text-shadow 0.3s ease;
+}
+
+.nsu-heading:hover {
+  text-shadow: 0 0 8px #a855f7, 0 0 16px #a855f7, 0 0 24px #a855f7;
+  color: #fff;
+}
+
+/* Typewriter animation */
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+@keyframes blink {
+  50% { border-color: transparent }
 }
