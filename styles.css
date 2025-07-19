@@ -1996,33 +1996,52 @@ body {
 
 .nsu-heading {
   font-family: 'Poppins', sans-serif;
-  font-size: 2.8rem;
+  font-size: 5vw; /* responsive: scales with screen width */
+  max-font-size: 3.8rem;
   text-align: center;
   color: #ffffff;
   text-transform: uppercase;
   margin: 40px auto 20px auto;
-  letter-spacing: 8px;
+  letter-spacing: 0.6vw;
   position: relative;
   z-index: 2;
   overflow: hidden;
   white-space: nowrap;
   border-right: 2px solid #ffffff;
   width: fit-content;
-  animation: typing 3.5s steps(30, end), blink .75s step-end infinite;
+  animation: typing 3.5s steps(30, end), blink 0.75s step-end infinite;
   transition: text-shadow 0.3s ease;
+  padding: 0 5vw; /* prevent cut-off on small screens */
 }
 
-.nsu-heading:hover {
-  text-shadow: 0 0 8px #a855f7, 0 0 16px #a855f7, 0 0 24px #a855f7;
-  color: #fff;
-}
 
 /* Typewriter animation */
 @keyframes typing {
-  from { width: 0 }
-  to { width: 100% }
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
 }
 
 @keyframes blink {
-  50% { border-color: transparent }
+  50% {
+    border-color: transparent;
+  }
+}
+
+/* Optional: clamp font size on very small/large screens */
+@media (max-width: 480px) {
+  .nsu-heading {
+    font-size: 4vw;
+    letter-spacing: 0.8vw;
+  }
+}
+
+@media (min-width: 768px) {
+  .nsu-heading {
+    font-size: 2.4rem;
+    letter-spacing: 6px;
+  }
 }
